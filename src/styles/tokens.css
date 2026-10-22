@@ -1,0 +1,114 @@
+/* Design tokens — DESIGN.md §3.  --bloom (0 winter → 1 green season) drives every semantic token. */
+
+@property --bloom {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+:root {
+  /* Winter */
+  --snow: #f3f2ee;
+  --fog: #d9d8d3;
+  --slate: #8a8c8e;
+  --ink: #16181a;
+
+  /* Green season */
+  --nadeshiko: #b8466e; /* wildflower pink (highlight only) */
+  --wakaba: #7fa33a; /* fresh-leaf green */
+  --nojiri: #2d6a8a; /* lake */
+  --koke: #4c7339; /* moss */
+  --ine: #d7a93b; /* rice gold */
+  --washi: #faf6ee;
+
+  /* Bloom: 0 → 1, set by scroll (JS) or ?bloom= in dev */
+  --bloom: 0;
+  --bloom-pct: calc(var(--bloom) * 100%);
+
+  /* Semantic, interpolated winter → colour */
+  --bg: color-mix(in oklab, var(--snow), var(--washi) var(--bloom-pct));
+  --bg-sunk: color-mix(in oklab, var(--fog), color-mix(in oklab, var(--washi), var(--ine) 14%) var(--bloom-pct));
+  --fg: var(--ink);
+  --fg-muted: color-mix(in oklab, #5b5d60, #4a4640 var(--bloom-pct)); /* AA on bg at both ends */
+  --rule: color-mix(in oklab, var(--fog), color-mix(in oklab, var(--ink) 22%, var(--washi)) var(--bloom-pct));
+  --accent: color-mix(in oklab, var(--slate), var(--koke) var(--bloom-pct));
+  --accent-strong: color-mix(in oklab, #4d4f51, #3e5f2e var(--bloom-pct)); /* text-safe accent (deep moss) */
+  --accent-warm: color-mix(in oklab, var(--slate), var(--nadeshiko) var(--bloom-pct));
+  --accent-lake: color-mix(in oklab, var(--slate), var(--nojiri) var(--bloom-pct));
+  --accent-moss: color-mix(in oklab, var(--slate), var(--koke) var(--bloom-pct));
+  --accent-gold: color-mix(in oklab, var(--slate), var(--ine) var(--bloom-pct));
+
+  /* Type */
+  --font-display: "Instrument Serif", "Times New Roman", serif;
+  --font-text: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-jp: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif;
+
+  --step--2: clamp(0.72rem, 0.7rem + 0.1vw, 0.78rem);
+  --step--1: clamp(0.82rem, 0.79rem + 0.15vw, 0.9rem);
+  --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
+  --step-1: clamp(1.2rem, 1.1rem + 0.5vw, 1.5rem);
+  --step-2: clamp(1.6rem, 1.3rem + 1.4vw, 2.4rem);
+  --step-3: clamp(2.2rem, 1.6rem + 2.8vw, 3.8rem);
+  --step-4: clamp(3rem, 1.8rem + 5.6vw, 6.5rem);
+  --step-5: clamp(3.8rem, 1.6rem + 10vw, 11rem);
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2.5rem;
+  --space-7: 4rem;
+  --space-8: 6rem;
+  --section-pad: clamp(80px, 12vw, 200px);
+
+  /* Easing */
+  --ease-out-3: cubic-bezier(0.215, 0.61, 0.355, 1); /* power3.out */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1); /* expo.out */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 400ms;
+  --dur-med: 700ms;
+  --dur-slow: 900ms;
+
+  /* Layout */
+  --max-w: 1440px;
+  --gutter: 16px;
+  --nav-h: 68px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+    --nav-h: 80px;
+  }
+}
+
+/* ---- 12-col grid ---- */
+.container {
+  width: 100%;
+  max-width: var(--max-w);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+}
+
+.grid > * {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 768px) {
+  .col-1-6 { grid-column: 1 / 7; }
+  .col-1-7 { grid-column: 1 / 8; }
+  .col-2-8 { grid-column: 2 / 9; }
+  .col-3-11 { grid-column: 3 / 12; }
+  .col-5-12 { grid-column: 5 / 13; }
+  .col-7-12 { grid-column: 7 / 13; }
+  .col-8-12 { grid-column: 8 / 13; }
+  .col-full { grid-column: 1 / -1; }
+}

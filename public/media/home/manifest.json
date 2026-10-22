@@ -1,0 +1,48 @@
+{
+  "nojiri-kayaks": {
+    "width": 4032,
+    "height": 3024,
+    "aspect": 1.3333333333333333,
+    "sizes": [
+      {
+        "w": 480,
+        "webpKB": 26,
+        "jpgKB": 26
+      },
+      {
+        "w": 800,
+        "webpKB": 61,
+        "jpgKB": 64
+      },
+      {
+        "w": 1200,
+        "webpKB": 123,
+        "jpgKB": 133
+      }
+    ],
+    "blurDataURI": "data:image/webp;base64,UklGRm4AAABXRUJQVlA4IGIAAABwBACdASoYABIAPtFWpEuoJKOhsAgBABoJZwC2yB51tOATEC8PBbns5rcjgADNwP55HJIAsYJqMzniCVNvghLzhIBJDJgFv+okXjwzREc09tOVEPC947F6chlNNxVqS1gAAA=="
+  },
+  "naena-falls": {
+    "width": 4284,
+    "height": 5712,
+    "aspect": 0.75,
+    "sizes": [
+      {
+        "w": 480,
+        "webpKB": 59,
+        "jpgKB": 54
+      },
+      {
+        "w": 800,
+        "webpKB": 147,
+        "jpgKB": 142
+      },
+      {
+        "w": 1200,
+        "webpKB": 312,
+        "jpgKB": 305
+      }
+    ],
+    "blurDataURI": "data:image/webp;base64,UklGRpoAAABXRUJQVlA4II4AAACQBQCdASoYACAAPrVKnUunJKMht+gA4BaJYwC/ODJOuNV4g8Yg7oyvhDFK4DnSCB0gSEd7yAD+9wq4FMEksLuDrrSpxNV+RFzcE1VbRloLSBqubWNQQ8lmU6Zi8JdmbJ/1nnu04iP3QtrV5moiAr6IiUoKw8pz+TN+KEMST3qSkVSyLoQaKWHquSHoLQAA"
+  }
+}

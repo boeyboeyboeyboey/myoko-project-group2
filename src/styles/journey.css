@@ -1,0 +1,193 @@
+/* Journey (home 04) — pinned scroll-scrubbed map. Cards use semantic tokens so they follow --bloom. */
+
+.journey { position: relative; border-top: 1px solid var(--rule); background: var(--bg); }
+
+.journey__stage {
+  position: relative;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--nav-h) + var(--space-2)) var(--gutter) var(--space-4);
+  max-width: var(--max-w);
+  margin-inline: auto;
+  overflow: hidden;
+}
+
+.journey__head { display: flex; align-items: baseline; gap: var(--space-4); flex-wrap: wrap; padding-bottom: var(--space-3); position: relative; }
+.journey__title { font-size: var(--step-1); }
+.journey__jp { position: absolute; right: 0; top: 0; display: none; }
+@media (min-width: 900px) {
+  .journey__title { font-size: var(--step-2); }
+  .journey__jp { display: block; }
+}
+
+.journey__main {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: var(--space-3);
+}
+@media (min-width: 900px) {
+  .journey__main { grid-template-rows: none; grid-template-columns: minmax(0, 3fr) minmax(340px, 2fr); gap: var(--space-6); align-items: stretch; }
+}
+
+/* ---- map ---- */
+.journey__map {
+  min-height: 0; min-width: 0; position: relative; overflow: hidden;
+  /* soft edges so the clipped land fades into the page instead of ending in a hard line */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent), linear-gradient(to bottom, transparent, #000 7%, #000 93%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent), linear-gradient(to bottom, transparent, #000 7%, #000 93%, transparent);
+  mask-composite: intersect;
+}
+.jm { width: 100%; height: 100%; overflow: visible; --u: 1; --rw: 1; }
+
+.jm-land path {
+  fill: color-mix(in oklab, var(--bg-sunk) 78%, var(--bg));
+  stroke: var(--rule);
+  stroke-width: calc(0.7px * var(--u));
+  stroke-linejoin: round;
+}
+.jm-lake { fill: color-mix(in oklab, var(--nojiri) 22%, var(--bg)); stroke: var(--nojiri); stroke-width: calc(0.8px * var(--u)); }
+
+.jm-route {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: calc(var(--rw) * 1.6px * var(--u));
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.jm-route--dashed { stroke-dasharray: calc(7px * var(--u)) calc(6px * var(--u)); stroke-linecap: butt; }
+.jm-maskpath { fill: none; stroke: #fff; stroke-width: calc(10px * var(--u)); }
+
+.jm-st__dot { fill: var(--ink); stroke: var(--bg); stroke-width: 2px; }
+.jm-st__dot--alt { fill: var(--bg); stroke: var(--ink); stroke-width: 1.5px; }
+.jm-st__badge { fill: var(--bg); stroke: var(--ink); stroke-width: 1.25px; }
+.jm-st__num { font: 600 14px/1 var(--font-text); fill: var(--ink); }
+.jm-st__label {
+  font: 500 14px/1 var(--font-text);
+  fill: var(--ink);
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+.jm-st__jp { font: 400 14px/1 var(--font-jp); fill: var(--fg-muted); }
+
+.jm-sea text { font: italic 400 20px/1 var(--font-display); fill: var(--slate); letter-spacing: 0.02em; }
+
+.jm-veh__disc { fill: var(--bg); stroke: var(--ink); stroke-width: 1.25px; }
+.jm-glyph { fill: none; stroke: var(--ink); stroke-width: 1.5px; stroke-linecap: round; stroke-linejoin: round; }
+.jm-glyph circle { fill: var(--ink); stroke: none; }
+
+/* On narrow screens minor stops show only their number; the list lives in the card. */
+@media (max-width: 899px) {
+  .jm-st--stop .jm-st__label { display: none; }
+}
+
+/* ---- panel ---- */
+.journey__panel { display: flex; flex-direction: column; justify-content: center; gap: var(--space-3); min-width: 0; }
+.jclock { display: flex; align-items: baseline; gap: var(--space-3); flex-wrap: wrap; }
+.jclock__t { font-family: var(--font-display); font-size: var(--step-2); line-height: 1; color: var(--accent-strong); font-variant-numeric: tabular-nums; }
+@media (min-width: 900px) { .jclock { flex-direction: column; gap: var(--space-2); } .jclock__t { font-size: var(--step-3); } }
+
+.jstep { display: flex; gap: var(--space-2); }
+.jstep__i { flex: 1; height: 4px; border: 1px solid var(--rule); border-radius: 2px; background: transparent; }
+
+.jstack { display: grid; }
+.jstack > .jc { grid-area: 1 / 1; }
+
+.jc {
+  position: relative;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+@media (min-width: 900px) { .jc { padding: var(--space-5); gap: var(--space-3); } }
+
+.jc__head { display: flex; align-items: baseline; gap: var(--space-1) var(--space-3); flex-wrap: wrap; }
+.jc__num { font-family: var(--font-display); font-style: italic; font-size: var(--step-2); line-height: 1; color: var(--accent-strong); }
+.jc__mode { font-weight: 600; font-size: 0.9375rem; }
+.jc__dur { font-size: 0.875rem; color: var(--fg-muted); }
+.jc__route { font-size: 0.875rem; line-height: 1.4; color: var(--fg-muted); max-width: none; }
+
+.jc__body { display: grid; }
+.jc__body > * { grid-area: 1 / 1; }
+.jc__tag { display: block; font-size: 0.875rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; color: var(--fg-muted); margin-bottom: 4px; }
+.jc__tag--ok { color: var(--accent-strong); }
+.jc__text { font-family: var(--font-display); font-size: var(--step-1); line-height: 1.2; color: var(--fg); max-width: none; }
+@media (min-width: 900px) { .jc__text { font-size: var(--step-2); } }
+.jc__src { display: block; margin-top: 6px; font-size: 0.875rem; font-style: italic; color: var(--fg-muted); }
+
+/* hanko */
+.jc__stamp {
+  position: absolute; top: -18px; right: 14px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  padding: 6px 10px;
+  border: 2px solid var(--nadeshiko);
+  outline: 1px solid var(--nadeshiko); outline-offset: 2px;
+  border-radius: 6px;
+  color: var(--nadeshiko);
+  background: color-mix(in oklab, var(--nadeshiko) 6%, transparent);
+  mix-blend-mode: multiply;
+  filter: url(#jm-hanko);
+  transform: rotate(-7deg);
+  pointer-events: none;
+}
+.jc__stamp-jp { font-family: var(--font-jp); font-weight: 700; font-size: 1.5rem; line-height: 1; }
+.jc__stamp-en { font: 700 0.875rem/1 var(--font-text); letter-spacing: 0.12em; }
+
+@media (max-width: 899px) {
+  .jc__stamp { flex-direction: row; gap: 8px; padding: 3px 9px; top: -17px; }
+  .jc__stamp-jp { font-size: 1.125rem; }
+  .jc { padding: var(--space-3) var(--space-4) var(--space-4); }
+  .jclock { align-items: center; justify-content: space-between; }
+  .journey__panel { gap: var(--space-2); }
+  .journey__head { flex-wrap: nowrap; gap: var(--space-3); }
+  .journey__head .eyebrow { white-space: nowrap; }
+}
+
+/* finale */
+.jc--final { gap: var(--space-3); }
+.jb__stats { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-5); }
+.jb__stat { display: flex; align-items: baseline; gap: 6px; }
+.jb__n { font-family: var(--font-display); font-size: var(--step-3); line-height: 1; color: var(--fg); }
+.jb__l { font-size: 0.9375rem; color: var(--fg-muted); }
+.jb__result { font-family: var(--font-display); font-style: italic; font-size: var(--step-3); line-height: 1; color: var(--nadeshiko); max-width: none; }
+.jb__cta {
+  align-self: flex-start;
+  display: inline-flex; gap: 0.6em; align-items: center;
+  padding: 0.85rem 1.4rem;
+  min-height: 44px;
+  background: var(--ink); color: var(--washi);
+  border-radius: 999px;
+  font-weight: 500; font-size: 1rem;
+  transition: background var(--dur-fast) var(--ease-out-3), transform var(--dur-fast) var(--ease-out-3);
+}
+.jb__cta:hover { background: var(--koke); transform: translateY(-1px); }
+.jb__cta:focus-visible { outline: 2px solid var(--nojiri); outline-offset: 3px; }
+.jb__note { font-size: 0.875rem; line-height: 1.4; max-width: none; }
+
+/* ---- reduced motion: no pin, static map + list ---- */
+.journey--static .journey__stage { height: auto; overflow: visible; padding-block: var(--section-pad); }
+.journey--static .journey__main { display: flex; flex-direction: column; gap: var(--space-6); }
+@media (min-width: 900px) {
+  .journey--static .journey__main { display: grid; grid-template-columns: minmax(0, 3fr) minmax(340px, 2fr); align-items: start; }
+  .journey--static .journey__map { position: sticky; top: calc(var(--nav-h) + var(--space-4)); }
+}
+.journey--static .journey__map { aspect-ratio: 1000 / 920; }
+.journey--static .jstep { display: none; }
+.jlist { display: flex; flex-direction: column; gap: var(--space-4); }
+.jc--static .jc__body { display: flex; flex-direction: column; gap: var(--space-3); }
+.jc--static .jc__pain .jc__text { color: var(--fg-muted); text-decoration: line-through; text-decoration-thickness: 1px; font-size: var(--step-0); }
+.jc--static .jc__stamp { opacity: 1; visibility: visible; }
+.jc--static .jb__stat, .jc--static .jb__result, .jc--static .jb__cta, .jc--static .jb__note { opacity: 1; }
+.journey--static .jm-veh { display: none; }
+.journey--static .jm-route { stroke: var(--koke); }
+.journey--static .jm-route--dashed { stroke-dasharray: calc(7px * var(--u)) calc(6px * var(--u)); }
