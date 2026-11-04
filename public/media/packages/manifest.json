@@ -1,0 +1,48 @@
+{
+  "slow": {
+    "width": 2816,
+    "height": 2112,
+    "aspect": 1.3333333333333333,
+    "sizes": [
+      {
+        "w": 480,
+        "webpKB": 11,
+        "jpgKB": 14
+      },
+      {
+        "w": 800,
+        "webpKB": 31,
+        "jpgKB": 37
+      },
+      {
+        "w": 1200,
+        "webpKB": 68,
+        "jpgKB": 81
+      }
+    ],
+    "blurDataURI": "data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAADwAwCdASoYABIAPslSoUunsSMht/VYAiAZCUAABIFrx4dQyWXqMLcAAP7Tnm3YrEI0BU7cmQ3i9TgIMTKx5CNv/BlCeqJGjuG+3u/Be5d/tAIW9pDgtuNPHaDglqzldvdkuNIAEnLAAA=="
+  },
+  "best": {
+    "width": 3840,
+    "height": 2560,
+    "aspect": 1.5,
+    "sizes": [
+      {
+        "w": 480,
+        "webpKB": 19,
+        "jpgKB": 21
+      },
+      {
+        "w": 800,
+        "webpKB": 50,
+        "jpgKB": 54
+      },
+      {
+        "w": 1200,
+        "webpKB": 107,
+        "jpgKB": 114
+      }
+    ],
+    "blurDataURI": "data:image/webp;base64,UklGRmwAAABXRUJQVlA4IGAAAAAQBACdASoYABAAPtFUpEuoJKOhsAgBABoJagCdMoADTbK3nFUQFojr4AD94pjVmrg4RBvaTZag33iKWVvetbcrDsT7F4sSQEaz2b543EK/gQvZkv7yNQGWQ7Ek8pPgAAA="
+  }
+}

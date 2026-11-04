@@ -15,8 +15,11 @@ import {
   calculateTotal,
   defaultPicks,
   findActivityClashes,
+  firstValidArrival,
   getPackage,
   makeItinerary,
+  seatsLeft,
+  SEATS_TOTAL,
   slotClashes,
   DEFAULT_REFERENCE_ARRIVAL,
   type PackageId,
@@ -268,4 +271,59 @@ describe('defaultPicks for a real arrival', () => {
       });
     }
   }
+});
+
+describe('firstValidArrival', () => {
+  const at = (iso: string) => new Date(`${iso}T12:00:00`);
+  test('before window A: starts at window A', () => {
+    expect(firstValidArrival('active', at('2026-10-23'))).toBe('2027-05-25');
+    expect(firstValidArrival('active', at('2027-05-25'))).toBe('2027-05-25');
+  });
+  test('inside window A: today if the stay still fits', () => {
+    expect(firstValidArrival('active', at('2027-06-01'))).toBe('2027-06-01');
+  });
+  test('after window A falls through to window B', () => {
+    expect(firstValidArrival('active', at('2027-06-09'))).toBe('2027-09-01');
+    expect(firstValidArrival('active', at('2027-07-01'))).toBe('2027-09-01');
+  });
+  test('inside window B and after it', () => {
+    expect(firstValidArrival('active', at('2027-09-20'))).toBe('2027-09-20');
+    expect(firstValidArrival('active', at('2027-10-20'))).toBeNull();
+  });
+  test('7D6N package needs the whole stay inside the window', () => {
+    const longest = PACKAGE_IDS.reduce((a, b) => (getPackage(b).nights > getPackage(a).nights ? b : a));
+    expect(firstValidArrival(longest, at('2027-06-05'))).toBe('2027-09-01');
+    expect(firstValidArrival(longest, at('2027-10-05'))).toBeNull();
+    const a = firstValidArrival(longest, at('2027-09-30'));
+    expect(a === null || bookingDatesValid(a, longest, at('2027-09-30'))).toBe(true);
+  });
+  test('result is always bookable', () => {
+    for (const id of PACKAGE_IDS) {
+      const a = firstValidArrival(id, at('2026-10-23'));
+      expect(a && bookingDatesValid(a, id, at('2026-10-23'))).toBe(true);
+    }
+  });
+});
+
+describe('seatsLeft (demo seat counts)', () => {
+  test('is deterministic and within 0..SEATS_TOTAL', () => {
+    const seen = new Set<number>();
+    for (const id of PACKAGE_IDS) {
+      for (let d = 1; d <= 30; d++) {
+        const iso = `2027-09-${String(d).padStart(2, '0')}`;
+        const n = seatsLeft(id, iso);
+        expect(n).toBe(seatsLeft(id, iso));
+        expect(n).toBeGreaterThanOrEqual(0);
+        expect(n).toBeLessThanOrEqual(SEATS_TOTAL);
+        expect(n).toBeGreaterThan(0);
+        seen.add(n);
+      }
+    }
+    expect(seen.size).toBeGreaterThan(3);
+  });
+
+  test('depends on the package', () => {
+    const dates = Array.from({ length: 20 }, (_, i) => `2027-09-${String(i + 1).padStart(2, '0')}`);
+    expect(dates.map((d) => seatsLeft('active', d))).not.toEqual(dates.map((d) => seatsLeft('slow', d)));
+  });
 });

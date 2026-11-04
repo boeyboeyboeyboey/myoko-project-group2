@@ -1,21 +1,30 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router";
 import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { setBloom } from "../../lib/bloom";
 import { createInkBleed, type InkBleed } from "../../lib/inkBleed";
-import { prefersReducedMotion } from "../../lib/smoothScroll";
-
-gsap.registerPlugin(ScrollTrigger);
+import LiveWeather from "./LiveWeather";
+import { getLenis, prefersReducedMotion } from "../../lib/smoothScroll";
 
 type Mode = "gl" | "css" | "static";
 
 const WINTER_LINE = "You've seen Myoko in white.";
-const HERO_SUB = "Lakes, forests and mountain villages, May to October. Small groups, everything arranged.";
-const GREEN_LINE = "Now see it in colour.";
+const HERO_SUB = "Take the Shinkansen to Joetsu-Myoko. We arrange the rest (proposed).";
+const REVEAL_SECONDS = 2.5; // autoplay length of the white-to-green swap
+const REVEAL_DELAY = 0.3;
+const GREEN_LINE = "Now see it in green.";
 // Same viewpoint (Imori Pond, ~17 m apart), pre-aligned crops — keep both focal points identical so the frames stay registered.
 const FOCAL = { winter: [0.7, 0.4] as [number, number], green: [0.7, 0.4] as [number, number] };
-const PIN_VH = 1.4; // pinned scroll distance, in viewport heights
+
+function goToPackages(e: React.MouseEvent<HTMLAnchorElement>) {
+  const el = document.getElementById("packages");
+  if (!el) return;
+  e.preventDefault();
+  const lenis = getLenis();
+  if (lenis && !prefersReducedMotion()) lenis.scrollTo(el, { offset: -8 });
+  else el.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
+  history.replaceState(null, "", "#packages");
+}
 
 function pickWidth() {
   const px = window.innerWidth * Math.min(window.devicePixelRatio || 1, 2);
@@ -49,6 +58,7 @@ export default function InkBleedHero() {
   const pinRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const greenImgRef = useRef<HTMLImageElement>(null);
+  const handleRef = useRef<HTMLButtonElement>(null);
 
   // Static (reduced motion): bloom is simply on.
   useEffect(() => {
@@ -76,23 +86,14 @@ export default function InkBleedHero() {
 
     const q = gsap.utils.selector(root);
     const proxy = { p: 0 };
+    let tlRef: gsap.core.Timeline | null = null;
     const ctx = gsap.context(() => {
       gsap.set(q(".hero__line--green .hero__char"), { opacity: 0, yPercent: 40, xPercent: 6 });
       gsap.set(q(".hero__line--green"), { filter: "blur(10px)" });
       gsap.set(q(".hero__jp--summer"), { opacity: 0, yPercent: 20 });
 
-      const tl = gsap.timeline({
-        defaults: { ease: "none" },
-        scrollTrigger: {
-          trigger: root,
-          start: "top top",
-          end: () => `+=${Math.round(window.innerHeight * PIN_VH)}`,
-          pin: root,
-          scrub: true,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-        },
-      });
+      // Autoplays once on mount. Positions below are fractions of 1, then the whole timeline is stretched to REVEAL_SECONDS.
+      const tl = gsap.timeline({ defaults: { ease: "none" }, delay: REVEAL_DELAY });
       // 0 → 0.06 hold (let the snow breathe), then the ink spreads
       tl.to(proxy, { p: 1, duration: 0.88, ease: "power1.inOut", onUpdate: () => apply(proxy.p) }, 0.06);
       // winter headline dissolves: letters drift up/outward, blur
@@ -101,7 +102,6 @@ export default function InkBleedHero() {
         stagger: { each: 0.006, from: "start" }, ease: "power2.in",
       }, 0.14);
       tl.to(q(".hero__line--winter"), { filter: "blur(10px)", duration: 0.2, ease: "power1.in" }, 0.14);
-      tl.to(q(".hero__scroll"), { opacity: 0, duration: 0.1 }, 0.04);
       tl.to(q(".hero__jp--winter"), { opacity: 0, yPercent: -20, duration: 0.14 }, 0.38);
       // green headline arrives
       tl.to(q(".hero__line--green .hero__char"), {
@@ -109,15 +109,72 @@ export default function InkBleedHero() {
       }, 0.54);
       tl.to(q(".hero__line--green"), { filter: "blur(0px)", duration: 0.2, ease: "power1.out" }, 0.54);
       tl.to(q(".hero__jp--summer"), { opacity: 1, yPercent: 0, duration: 0.14 }, 0.52);
-      tl.to({}, { duration: 0.06 }, 0.94); // short hold on the final frame before unpinning
+      tl.duration(REVEAL_SECONDS);
+      tlRef = tl;
     }, root);
 
-    ScrollTrigger.refresh();
+    // Scrubbing: once autoplay ends (or the user grabs it), the paused timeline is driven by drag / arrow keys.
+    const tl = tlRef!;
+    const pin = pinRef.current!;
+    const handle = handleRef.current;
+    const setProg = (p: number) => {
+      const c = Math.min(1, Math.max(0, p));
+      tl.progress(c);
+      handle?.setAttribute("aria-valuenow", String(Math.round(c * 100)));
+    };
+    const enable = () => {
+      if (handle) { handle.classList.add("hero__handle--on"); }
+      pin.classList.add("hero__pin--scrub");
+    };
+    tl.eventCallback("onComplete", enable);
+    let startX = 0, startP = 0, dragId = -1;
+    const onDown = (e: PointerEvent) => {
+      if (e.button !== 0 && e.pointerType === "mouse") return;
+      if ((e.target as Element).closest("a, button, [role='slider']")) return;
+      dragId = e.pointerId;
+      startX = e.clientX;
+      tl.pause(); // grabbing early: stop autoplay where it is
+      startP = tl.progress();
+      enable();
+      pin.setPointerCapture(e.pointerId);
+    };
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerId !== dragId) return;
+      setProg(startP + (e.clientX - startX) / pin.clientWidth);
+    };
+    const onUp = (e: PointerEvent) => {
+      if (e.pointerId !== dragId) return;
+      dragId = -1;
+      if (pin.hasPointerCapture(e.pointerId)) pin.releasePointerCapture(e.pointerId);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      const d = e.key === "ArrowRight" || e.key === "ArrowUp" ? 0.1 : e.key === "ArrowLeft" || e.key === "ArrowDown" ? -0.1 : 0;
+      if (e.key === "Home") { e.preventDefault(); tl.pause(); setProg(0); return; }
+      if (e.key === "End") { e.preventDefault(); tl.pause(); setProg(1); return; }
+      if (!d) return;
+      e.preventDefault();
+      tl.pause();
+      setProg(tl.progress() + d);
+    };
+    pin.addEventListener("pointerdown", onDown);
+    pin.addEventListener("pointermove", onMove);
+    pin.addEventListener("pointerup", onUp);
+    pin.addEventListener("pointercancel", onUp);
+    handle?.addEventListener("keydown", onKey);
+
     const io = new IntersectionObserver(([e]) => ink?.setVisible(e.isIntersecting), { rootMargin: "100px" });
     io.observe(root);
 
     return () => {
       io.disconnect();
+      pin.removeEventListener("pointerdown", onDown);
+      pin.removeEventListener("pointermove", onMove);
+      pin.removeEventListener("pointerup", onUp);
+      pin.removeEventListener("pointercancel", onUp);
+      handle?.removeEventListener("keydown", onKey);
+      pin.classList.remove("hero__pin--scrub");
+      handle?.classList.remove("hero__handle--on");
+      tl.kill();
       ctx.revert();
       ink?.destroy();
     };
@@ -149,8 +206,6 @@ export default function InkBleedHero() {
         <div className="hero__scrim" aria-hidden="true" />
 
         <div className="hero__content container">
-          <p className="hero__kicker eyebrow"><span className="hero__kicker-n">01</span> — Myoko, Niigata</p>
-
           {isStatic ? (
             <div className="hero__static-head">
               <p className="hero__caption">{WINTER_LINE}</p>
@@ -168,8 +223,8 @@ export default function InkBleedHero() {
           )}
           <p className="hero__sub">{HERO_SUB}</p>
           <div className="hero__cta">
-            <Link to="/packages" className="pill hero__pill">Plan your trip</Link>
-            <Link to="/return" className="pill pill--ghost hero__pill hero__pill--ghost">Skied here before?</Link>
+            <a href="#packages" className="pill hero__pill" onClick={goToPackages}>Explore packages</a>
+            <Link to="/return" className="pill pill--ghost hero__pill hero__pill--ghost">Got a winter voucher?</Link>
           </div>
         </div>
 
@@ -179,11 +234,18 @@ export default function InkBleedHero() {
         </div>
 
         {!isStatic && (
-          <div className="hero__scroll" aria-hidden="true">
-            <span>Scroll</span>
-            <i />
-          </div>
+          <button
+            ref={handleRef}
+            type="button"
+            className="hero__handle"
+            role="slider"
+            aria-label="Season: drag or use arrow keys"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={0}
+          />
         )}
+        <LiveWeather />
 
         <p className="hero__credit">Imori Pond, same viewpoint. Photos: Raita Futo (Feb 2019) and TANAKA Juuyoh (Aug 2012), CC BY 2.0 — cropped, colour-processed</p>
       </div>

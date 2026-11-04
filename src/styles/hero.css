@@ -1,6 +1,6 @@
-/* Home 01+02 — pinned ink-bleed hero. Text is always light-on-dark (scrim), independent of --bloom. */
-.hero { position: relative; height: 100svh; min-height: 560px; color: #f6f4ee; background: #8d9ba8; }
-.hero__pin { position: relative; height: 100svh; min-height: 560px; width: 100%; overflow: hidden; }
+/* Home 01+02 — autoplay ink-bleed hero (not pinned). Text is always light-on-dark (scrim), independent of --bloom. */
+.hero { position: relative; height: 80svh; min-height: 600px; max-height: 860px; color: #f6f4ee; background: #8d9ba8; }
+.hero__pin { position: relative; height: 100%; width: 100%; overflow: hidden; }
 .hero__media { position: absolute; inset: 0; }
 .hero__canvas, .hero__poster, .hero__img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .hero__poster, .hero__img { object-fit: cover; object-position: 52% 30%; }
@@ -23,16 +23,15 @@
 .hero__content {
   position: absolute; inset: 0; margin-inline: auto;
   display: flex; flex-direction: column; justify-content: flex-end;
-  padding-bottom: clamp(88px, 14vh, 150px); padding-right: clamp(var(--gutter), 9vw, 140px);
+  padding-top: calc(var(--nav-h) + 16px); padding-bottom: clamp(48px, 9vh, 96px); padding-right: clamp(var(--gutter), 9vw, 140px);
 }
-.hero__kicker { color: rgb(246 244 238 / 0.86); margin-bottom: var(--space-4); text-shadow: 0 1px 12px rgb(0 0 0 / 0.35); }
-.hero__kicker-n { font-family: var(--font-display); font-style: italic; font-size: 1.15em; letter-spacing: 0.04em; text-transform: none; }
+.hero__kicker { font-family: var(--font-display); font-style: italic; font-weight: 400; font-size: clamp(1.35rem, 2.6vw, 2rem); line-height: 1.2; color: #fbf9f4; margin-bottom: var(--space-3); text-shadow: 0 1px 14px rgb(0 0 0 / 0.5), 0 2px 40px rgb(6 12 18 / 0.35); }
 
 .hero__heads { display: grid; }
 .hero__heads > * { grid-area: 1 / 1; }
 .hero__line {
   font-family: var(--font-display); font-weight: 400; color: #fbf9f4;
-  font-size: clamp(3.2rem, 1.4rem + 8.4vw, 9.6rem); line-height: 0.95; letter-spacing: -0.02em;
+  font-size: min(clamp(3.2rem, 1.4rem + 8.4vw, 9.6rem), 13svh); line-height: 0.95; letter-spacing: -0.02em;
   max-width: 11ch; text-wrap: balance; text-shadow: 0 2px 40px rgb(6 12 18 / 0.35);
   will-change: filter;
 }
@@ -51,27 +50,47 @@ p.hero__line { color: #fbf9f4; max-width: 11ch; }
 .hero__jp > * { grid-area: 1 / 1; color: #f6f4ee; font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.8rem); letter-spacing: 0; text-shadow: 0 1px 14px rgb(0 0 0 / 0.4); }
 @media (min-width: 768px) { .hero__jp { right: calc(var(--gutter) + 8px); } }
 
-.hero__scroll {
-  position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%);
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
-  font-size: var(--step--2); letter-spacing: 0.28em; text-transform: uppercase; color: rgb(246 244 238 / 0.85);
-}
-.hero__scroll i { width: 1px; height: 44px; background: linear-gradient(to bottom, rgb(246 244 238 / 0.9), transparent); transform-origin: top; animation: hero-cue 2.2s var(--ease-in-out) infinite; }
-@keyframes hero-cue { 0% { transform: scaleY(0); } 55% { transform: scaleY(1); } 100% { transform: scaleY(1); opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .hero__scroll i { animation: none; } }
-
 .hero__credit {
   position: absolute; right: var(--gutter); bottom: 10px; max-width: none;
   font-size: 0.62rem; letter-spacing: 0.04em; color: rgb(246 244 238 / 0.62);
 }
-@media (max-width: 600px) { .hero__credit { left: var(--gutter); right: auto; bottom: 8px; max-width: 70%; } .hero__scroll { display: none; } }
+@media (max-width: 600px) { .hero__credit { left: var(--gutter); right: auto; bottom: 8px; max-width: 70%; } }
 
-.hero--static { height: 100svh; }
 
 /* Hero sub-line and CTAs (static, never animated) */
-.hero__sub { margin-top: var(--space-4); max-width: 34ch; color: rgb(246 244 238 / 0.92); font-size: var(--step-0); text-shadow: 0 1px 14px rgb(0 0 0 / 0.45); }
+.hero__sub { margin-top: var(--space-4); max-width: 40ch; color: rgb(246 244 238 / 0.92); font-size: var(--step-0); text-shadow: 0 1px 14px rgb(0 0 0 / 0.45); }
 .hero__cta { display: flex; flex-wrap: wrap; gap: var(--space-3); margin-top: var(--space-5); }
 .hero__pill { background: #f6f4ee; color: #16181a; }
 .hero__pill:hover { background: #fff; }
 .hero__pill--ghost { background: rgb(8 14 20 / 0.25); color: #f6f4ee; box-shadow: inset 0 0 0 1px rgb(246 244 238 / 0.8); }
 .hero__pill--ghost:hover { background: #f6f4ee; color: #16181a; }
+
+/* Drag-to-scrub the season (appears once autoplay ends) */
+.hero__pin { touch-action: pan-y; }
+.hero__pin--scrub { cursor: ew-resize; user-select: none; -webkit-user-select: none; }
+.hero__handle {
+  position: absolute; right: var(--gutter); bottom: 40px; width: 36px; height: 36px; border-radius: 50%;
+  background: rgb(8 14 20 / 0.3); box-shadow: inset 0 0 0 1px rgb(246 244 238 / 0.75); color: #f6f4ee;
+  cursor: ew-resize; opacity: 0; visibility: hidden; transition: opacity 0.5s ease, visibility 0s 0.5s, background 0.2s;
+}
+.hero__handle::before { content: "\27F7"; font-size: 1.15rem; line-height: 36px; display: block; text-align: center; text-shadow: 0 1px 8px rgb(0 0 0 / 0.5); }
+.hero__handle--on { opacity: 1; visibility: visible; transition: opacity 0.5s ease, background 0.2s; }
+.hero__handle:hover { background: rgb(8 14 20 / 0.5); }
+.hero__handle:focus-visible { outline: 2px solid #f6f4ee; outline-offset: 3px; }
+
+/* Live weather strip (bottom-left; credit sits bottom-right on desktop) */
+.hero__weather {
+  position: absolute; left: var(--gutter); bottom: 14px; max-width: calc(100% - 2 * var(--gutter) - 52px);
+  display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 0.55em; row-gap: 2px;
+  font-size: 0.8rem; line-height: 1.4; color: rgb(246 244 238 / 0.9); text-shadow: 0 1px 14px rgb(0 0 0 / 0.55), 0 1px 3px rgb(0 0 0 / 0.4);
+}
+.hero__weather-now { letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.75rem; opacity: 0.85; }
+.hero__weather-place--main { font-weight: 600; color: #fff; }
+.hero__weather-place:not(:last-of-type)::after,
+.hero__weather-now::after { content: "·"; margin-left: 0.55em; opacity: 0.6; }
+.hero__weather-src { font-size: 0.75rem; opacity: 0.7; text-decoration: underline; text-underline-offset: 2px; }
+.hero__weather-src:hover { opacity: 1; }
+@media (max-width: 600px) {
+  .hero__weather { bottom: 36px; }
+  .hero__content { padding-bottom: 88px; }
+}

@@ -38,7 +38,33 @@
 .commits strong { font-family: var(--font-display); font-weight: 400; font-size: var(--step-1); }
 
 .home-notes { padding-block: var(--space-7); }
-.notes { display: grid; gap: var(--space-2); margin-top: var(--space-4); padding-left: 1.4rem; font-size: var(--step--2); color: var(--fg-muted); max-width: 70ch; }
+.notes { display: grid; gap: var(--space-2); margin-top: var(--space-4); padding-left: 1.4rem; font-size: 0.9rem; color: var(--fg-muted); max-width: 70ch; }
 .notes li:target, .notes li:focus { outline: none; color: var(--fg); }
 .notes__back { padding: 0.25em 0.4em; color: var(--accent-strong); }
-.notes__credit { margin-top: var(--space-4); font-size: var(--step--2); color: var(--fg-muted); }
+.notes__credit { margin-top: var(--space-4); font-size: 0.9rem; color: var(--fg-muted); }
+
+/* Winter voucher bar (directly under the hero) */
+.home-bar { background: color-mix(in oklab, var(--bg), var(--koke) 8%); }
+.home-bar__in { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3) var(--space-5); padding-block: var(--space-4); }
+.home-bar__in p { max-width: 60ch; font-size: 1rem; }
+#packages .fine { font-size: 1rem; }
+#packages { padding-top: clamp(40px, 6vw, 80px); }
+
+/* Trip finder (placeholder AI concierge) under the packages heading */
+.trip-finder { margin-top: var(--space-5); display: grid; gap: var(--space-3); max-width: 46rem; min-width: 0; }
+.trip-finder__form { display: grid; gap: var(--space-2); min-width: 0; }
+.trip-finder__label { font-size: var(--step--1); color: var(--fg-muted); }
+.trip-finder__row { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+@media (min-width: 640px) { .trip-finder__row { flex-direction: row; align-items: stretch; } }
+.trip-finder__input { flex: 1 1 auto; min-width: 0; width: 100%; padding: 0.8rem 1rem; border: 1px solid var(--rule); border-radius: 4px; background: transparent; color: var(--fg); font: inherit; font-size: var(--step-0); }
+.trip-finder__input::placeholder { color: var(--fg-muted); }
+.trip-finder__submit { border: 0; cursor: pointer; font: inherit; justify-content: center; }
+.trip-finder__result { min-height: 0; }
+.trip-finder__card { display: grid; gap: var(--space-2); justify-items: start; padding-top: var(--space-3); border-top: 1px solid var(--rule); min-width: 0; }
+.trip-finder__name { font-family: var(--font-display); font-size: var(--step-1); overflow-wrap: anywhere; }
+.trip-finder__len { color: var(--fg-muted); font-family: var(--font-text); font-size: var(--step--1); }
+.trip-finder__reasons { font-size: var(--step--1); color: var(--fg-muted); overflow-wrap: anywhere; }
+.trip-finder__demo { font-size: var(--step--2); color: var(--fg-muted); }
+
+/* Trip finder: compact, below the package cards */
+.home-finder { margin-top: var(--space-6); max-width: 40rem; }

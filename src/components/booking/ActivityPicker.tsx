@@ -51,7 +51,7 @@ export default function ActivityPicker({
         const price = themed ? "Included" : `+${sgd(a.priceSgd)}`;
         const priceNote = themed ? (pick ? "in package price" : "removed, not refunded") : "per person";
         return (
-          <li key={a.id} className="act" data-picked={!!pick} data-problem={!!(stale || clash)}>
+          <li key={a.id} className="act" data-flip-id={`card-${a.id}`} data-picked={!!pick} data-problem={!!(stale || clash)}>
             <div className="act__head">
               <div>
                 <h3 className="act__name">{a.name}</h3>

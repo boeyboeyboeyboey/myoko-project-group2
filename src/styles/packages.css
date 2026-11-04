@@ -161,29 +161,73 @@
 .rp__cta { display: flex; flex-wrap: wrap; gap: var(--space-3); }
 .rp__panel .link-btn { justify-self: start; }
 
-/* /packages/:slug: sticky booking summary */
-.pd { padding-bottom: 9rem; }
-.pd__layout { display: grid; gap: var(--space-6); }
-.pd__main { min-width: 0; }
-.bsum { position: fixed; inset: auto 0 0 0; z-index: 40; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2) var(--space-4); padding: var(--space-3) var(--gutter); background: var(--bg); border-top: 3px solid var(--koke); box-shadow: 0 -6px 20px rgb(22 24 26 / 0.08); }
-.bsum__facts { display: none; margin: 0; }
+/* /packages/:slug: booking summary + one-page checkout. Mobile order: dates, summary/form, included, itinerary. */
+.pd__layout { display: flex; flex-direction: column; gap: var(--space-6); }
+.pd__main { display: contents; }
+.pd__dates { order: 1; }
+.bsum { order: 2; display: grid; gap: var(--space-4); align-content: start; padding: var(--space-5) 0; border-block: 3px solid var(--koke); }
+.pd__rest { order: 4; }
+.bsum__facts { display: grid; gap: var(--space-3); margin: 0; }
+.bsum__facts > div { display: flex; justify-content: space-between; gap: var(--space-4); padding-bottom: var(--space-3); border-bottom: 1px solid var(--rule); font-size: var(--step--1); }
+.bsum__facts dd { margin: 0; font-weight: 500; text-align: right; }
 .bsum__price { display: grid; gap: 0.1rem; }
 .bsum__pp, .bsum__party { margin: 0; font-size: var(--step--1); color: var(--fg-muted); }
-.bsum__pp strong { font-family: var(--font-display); font-weight: 400; font-size: var(--step-1); color: var(--fg); }
-.bsum__party strong { font-family: var(--font-display); font-weight: 400; font-size: var(--step-1); color: var(--fg); }
-.bsum__cta { display: grid; gap: 0.25rem; justify-items: end; }
-.bsum__cta .note { margin: 0; max-width: 16rem; text-align: right; }
-.bsum__fine { display: none; margin: 0; }
+.bsum__pp strong, .bsum__party strong { font-family: var(--font-display); font-weight: 400; color: var(--fg); }
+.bsum__pp strong { font-size: var(--step-3); }
+.bsum__party strong { font-size: var(--step-1); }
+.bsum__incl { display: grid; gap: 0.35rem; margin: 0; padding: 0; list-style: none; font-size: var(--step--1); }
+.bsum__incl li { position: relative; padding-left: 1.4rem; }
+.bsum__incl li::before { content: ""; position: absolute; left: 0; top: 0.65em; width: 0.7rem; height: 1px; background: var(--koke); }
+.bsum__form { display: grid; gap: var(--space-3); }
+.bsum__done { display: grid; gap: var(--space-3); justify-items: start; }
+.bsum__cta { display: grid; gap: 0.35rem; justify-items: start; }
+.bsum__cta .note { margin: 0; }
+.bsum__fine { margin: 0; }
 @media (min-width: 1100px) {
-  .pd { padding-bottom: 0; }
-  .pd__layout { grid-template-columns: minmax(0, 1.6fr) minmax(18rem, 1fr); gap: var(--space-8); align-items: start; }
-  .bsum { position: sticky; top: calc(var(--nav-h) + var(--space-5)); inset: auto; display: grid; gap: var(--space-4); align-content: start; padding: var(--space-6) 0; border-block: 3px solid var(--koke); border-top-width: 3px; box-shadow: none; background: transparent; }
-  .bsum__facts { display: grid; gap: var(--space-3); }
-  .bsum__facts > div { display: flex; justify-content: space-between; gap: var(--space-4); padding-bottom: var(--space-3); border-bottom: 1px solid var(--rule); font-size: var(--step--1); }
-  .bsum__facts dd { margin: 0; font-weight: 500; text-align: right; }
-  .bsum__pp strong { font-size: var(--step-3); }
-  .bsum__party strong { font-size: var(--step-2); }
-  .bsum__cta { justify-items: start; }
-  .bsum__cta .note { text-align: left; max-width: none; }
-  .bsum__fine { display: block; }
+  .pd__layout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(20rem, 1fr); gap: var(--space-8); align-items: start; }
+  .pd__main { display: block; min-width: 0; }
+  .pd__dates, .pd__rest { order: 0; }
+  .bsum { position: sticky; top: calc(var(--nav-h) + var(--space-5)); max-height: calc(100vh - var(--nav-h) - var(--space-6)); overflow-y: auto; padding: var(--space-6) 0; }
 }
+
+/* Package page: compact opener so dates, total and the booking form sit on the first screen */
+.pd .page-hero { padding-block: clamp(24px, 3vw, 40px) clamp(16px, 2vw, 24px); }
+.pd .page-hero__label { margin-bottom: var(--space-2); }
+.pd .page-hero h1 { font-size: clamp(2.5rem, 5vw, 4rem); line-height: 1; }
+
+/* Seats calendar */
+.field--cal { justify-items: stretch; min-width: 0; }
+.cal { display: grid; gap: var(--space-5); min-width: 0; max-width: 100%; }
+.cal__win { display: flex; gap: var(--space-5); overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; padding-bottom: 2px; }
+.cal__month { flex: 1 0 min(100%, 17rem); max-width: 22rem; scroll-snap-align: start; min-width: 0; }
+.cal__title { font-family: var(--font-text); font-size: var(--step--1); font-weight: 500; margin-bottom: var(--space-3); }
+.cal__grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
+.cal__wd { text-align: center; font-size: var(--step--2); color: var(--fg-muted); padding-block: 2px; }
+.cal__day { position: relative; display: grid; grid-template-rows: auto auto auto; justify-items: center; align-content: center; gap: 1px; min-height: 2.9rem; padding: 3px 0; border-radius: 4px; font-size: var(--step--1); line-height: 1.1; border: 1px solid transparent; transition: background var(--dur-fast) var(--ease-out-3), border-color var(--dur-fast) var(--ease-out-3); }
+.cal__day:disabled { color: var(--fg-muted); opacity: 0.35; cursor: not-allowed; }
+.cal__day[data-out="true"] { opacity: 0.18; }
+.cal__day:not(:disabled):hover { border-color: var(--fg); }
+.cal__day:focus-visible { outline: 2px solid var(--koke); outline-offset: 1px; }
+.cal__bar { width: 70%; height: 3px; border-radius: 2px; background: var(--rule); overflow: hidden; }
+.cal__bar i { display: block; height: 100%; background: var(--koke); }
+.cal__left { font-size: 0.6rem; color: var(--fg-muted); font-variant-numeric: tabular-nums; }
+.cal__day[data-low="true"] .cal__left { color: #8c2c4d; font-weight: 500; }
+.cal__day[data-low="true"] .cal__bar i { background: var(--nadeshiko); }
+.cal__day[data-range="mid"], .cal__day[data-range="start"], .cal__day[data-range="end"] { background: color-mix(in oklab, var(--bg), var(--koke) 16%); border-radius: 0; opacity: 1; color: var(--fg); }
+.cal__day[data-range="start"] { background: var(--koke); color: #fff; border-radius: 4px 0 0 4px; }
+.cal__day[data-range="end"] { border-radius: 0 4px 4px 0; box-shadow: inset 0 -2px 0 var(--koke); }
+.cal__day[data-range="start"] .cal__left { color: rgb(255 255 255 / 0.9); }
+.cal__day[data-range="start"] .cal__bar { background: rgb(255 255 255 / 0.35); }
+.cal__day[data-range="start"] .cal__bar i { background: #fff; }
+
+/* Itinerary activities (FLIP targets) */
+.itin__acts { list-style: none; padding: 0; display: grid; gap: 0.25rem; }
+.itin li.itin__act { display: block; padding: 0; border: 0; font-size: var(--step--1); }
+.itin li.itin__act[data-problem="true"] { color: #8c2c4d; }
+
+/* Package photos: cards (home, /packages) and detail banner */
+.tier__photo { width: 100%; aspect-ratio: 3 / 2; overflow: hidden; background: var(--bg-sunk); }
+.tier__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pd__banner { padding-bottom: var(--space-4); }
+.pd__banner img { width: 100%; height: clamp(160px, 22vh, 220px); object-fit: cover; display: block; background: var(--bg-sunk); }
+.pd__credit { margin-top: var(--space-2); font-size: var(--step--1); color: var(--fg-muted); }

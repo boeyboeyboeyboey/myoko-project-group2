@@ -11,8 +11,9 @@ export interface ReturnPass {
 }
 
 export const DEMO_PASSES: readonly ReturnPass[] = [
-  { code: 'MADARAO-2026', discount: 0.1, resort: 'Madarao Mountain Resort', winterTicket: 'Winter 2025–26 season ticket' },
-  { code: 'SUGINOHARA-2026', discount: 0.1, resort: 'Suginohara', winterTicket: 'Winter 2025–26 season ticket' },
+  { code: 'MADARAO-2026', discount: 0.1, resort: 'Madarao Mountain Resort', winterTicket: 'Winter 2026–27 season ticket' },
+  { code: 'SUGINOHARA-2026', discount: 0.1, resort: 'Suginohara', winterTicket: 'Winter 2026–27 season ticket' },
+  { code: 'MADARAO-4827', discount: 0.1, resort: 'Madarao Mountain Resort', winterTicket: 'Winter 2026–27 season ticket' },
 ];
 
 export type RedeemResult =

@@ -27,6 +27,17 @@ const JOBS = [
       { name: "naena-falls", src: "media-raw/home/naena-falls.jpg" },
     ],
   },
+  {
+    // Package card/banner photos (public domain / CC BY 2.0 Commons, see media-raw/commons/CREDITS-commons.md)
+    group: "packages",
+    outDir: "public/media/packages",
+    widths: [480, 800, 1200],
+    quality: 76,
+    items: [
+      { name: "slow", src: "media-raw/commons/green-3.jpg" },
+      { name: "best", src: "media-raw/commons/green-4.jpg" },
+    ],
+  },
 ];
 
 const only = process.argv.slice(2);

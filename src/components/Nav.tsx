@@ -29,7 +29,7 @@ export default function Nav() {
             {NAV_LINKS.map((l) => (
               <NavLink key={l.to} to={l.to} className="nav__link">{l.label}</NavLink>
             ))}
-            <Link to="/book" className="pill">Book</Link>
+            <Link to="/packages" className="pill">Explore</Link>
           </nav>
           <button
             className="nav__toggle" aria-expanded={open} aria-controls="mobile-menu"
@@ -49,7 +49,7 @@ export default function Nav() {
             </Link>
           ))}
         </nav>
-        <Link to="/book" className="pill" style={{ alignSelf: "flex-start" }}>Book your stay</Link>
+        <Link to="/packages" className="pill" style={{ alignSelf: "flex-start" }}>Explore packages</Link>
       </div>
     </>
   );

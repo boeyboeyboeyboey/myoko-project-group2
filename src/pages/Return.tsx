@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import gsap from "gsap";
 import PageHero from "../components/PageHero";
 import { bookingDatesValid } from "../lib/booking";
@@ -9,21 +9,22 @@ import { setBloom } from "../lib/bloom";
 import { useReveal } from "../lib/useReveal";
 
 const STEPS = [
-  ["Ski with us", "Your winter lift ticket is the key."],
-  ["Enter the code", "Only the pass code. No name, no email."],
-  ["Return in colour", "Take 10% off any green-season package."],
+  ["Get your voucher", "Handed to you at winter check-in."],
+  ["Enter the code", "No name, no email."],
+  ["Return in colour", "Take 10% off one green-season package."],
 ];
 
 const ERRORS: Record<"empty" | "format" | "unknown", string> = {
-  empty: "Enter your pass code first.",
-  format: "That does not look like a pass code. Codes look like MADARAO-2026.",
-  unknown: "We do not recognise that code. Check it against your ticket, or try a demo code.",
+  empty: "Enter your voucher code first.",
+  format: "That does not look like a voucher code. Codes look like MADARAO-2026.",
+  unknown: "We do not recognise that code. Check it against your voucher, or try a demo code.",
 };
 
 const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export default function Return() {
   const [booking] = useBooking();
+  const [searchParams] = useSearchParams();
   const root = useRef<HTMLDivElement>(null);
   const card = useRef<HTMLDivElement>(null);
   const front = useRef<HTMLDivElement>(null);
@@ -33,7 +34,7 @@ export default function Return() {
   useEffect(() => setBloom(1), []);
 
   const voucher = booking.voucher;
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(() => (searchParams.get("code") ?? "").trim().toUpperCase());
   const [error, setError] = useState("");
   const [shown, setShown] = useState<ReturnPass | null>(null); // pass on the ticket back
   const flipped = voucher !== null;
@@ -87,9 +88,9 @@ export default function Return() {
 
   return (
     <div className="page" ref={root}>
-      <PageHero num="03" label="Return pass" jp="再会"
-        title={<>You've seen Myoko in white. Come back for the <em>colour</em>.</>}
-        lede="A winter lift ticket unlocks a green-season perk. Proposed: PCG would issue the pass through its own lift-ticket system." />
+      <PageHero num="03" label="Winter voucher" jp="再会"
+        title={<>You've seen Myoko in white. Now see it in <em>green</em>.</>}
+        lede="Handed out at winter check-in. Proposed: PCG would issue it to its own ski guests." />
 
       <section className="section section--tight">
         <div className="container">
@@ -108,15 +109,15 @@ export default function Return() {
               <div className="rp__face rp__front" ref={front} aria-hidden={flipped}>
                 <span className="eyebrow">Lift ticket · Winter</span>
                 <strong className="rp__big">{known?.resort ?? "Madarao Mountain Resort"}</strong>
-                <span className="rp__meta">{known?.winterTicket ?? "Winter 2025–26 season ticket"}</span>
+                <span className="rp__meta">{known?.winterTicket ?? "Winter 2026–27 season ticket"}</span>
                 <span className="rp__barcode" aria-hidden="true" />
                 <span className="rp__jp" aria-hidden="true">冬</span>
               </div>
               <div className="rp__face rp__back" ref={back} aria-hidden={!flipped} aria-label={flipped ? "Green-season voucher" : undefined}>
-                <span className="eyebrow">Return pass · Green season</span>
+                <span className="eyebrow">Winter voucher · Green season</span>
                 <strong className="rp__code">{code || "—"}</strong>
-                <span className="rp__big">10% off any green-season package</span>
-                <span className="rp__meta">Valid May–Oct 2027 · illustrative</span>
+                <span className="rp__big">10% off one green-season package.</span>
+                <span className="rp__meta">Valid for 2027 trips: 25 May–10 Jun or 1 Sep–10 Oct · illustrative</span>
                 <span className="rp__jp" aria-hidden="true">緑</span>
               </div>
             </div>
@@ -126,7 +127,7 @@ export default function Return() {
             {!flipped ? (
               <form className="form" onSubmit={onSubmit} noValidate>
                 <div className="field">
-                  <label htmlFor="pass-code" className="eyebrow">Pass code</label>
+                  <label htmlFor="pass-code" className="eyebrow">Voucher code</label>
                   <input id="pass-code" ref={field} className="input" value={value} autoComplete="off" spellCheck={false}
                     autoCapitalize="characters" aria-invalid={error ? "true" : "false"} aria-describedby="pass-msg"
                     onChange={(e) => setValue(e.target.value)} placeholder="e.g. MADARAO-2026" />
@@ -137,19 +138,19 @@ export default function Return() {
               </form>
             ) : (
               <div className="form" role="status">
-                <p className="sec-title">Pass applied. <em>Welcome back.</em></p>
+                <p className="sec-title">Voucher applied. <em>Welcome back.</em></p>
                 <p className="note">Code {voucher.code} now takes {Math.round(voucher.discount * 100)}% off your green-season package.</p>
                 <div className="rp__cta">
                   <Link to="/packages" className="pill">Use it on a package</Link>
                   {hasSelection && <Link to="/book" className="pill pill--ghost">Back to your booking</Link>}
                 </div>
-                <button type="button" className="link-btn" onClick={remove}>Remove pass</button>
+                <button type="button" className="link-btn" onClick={remove}>Remove voucher</button>
               </div>
             )}
           </div>
         </div>
         <div className="container">
-          <p className="fine">Prototype. In a live version, the pass would be issued to verified winter guests by PCG; no real codes exist.</p>
+          <p className="fine">Prototype: no real codes exist.</p>
         </div>
       </section>
     </div>

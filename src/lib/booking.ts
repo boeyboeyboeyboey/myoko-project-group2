@@ -320,6 +320,24 @@ export function bookingDatesValid(arrival: string, packageId: PackageId, today: 
   return BOOKING_WINDOWS.some((w) => arrival >= w.from && departure <= w.to);
 }
 
+/**
+ * Earliest arrival (ISO) from which the whole stay fits inside one booking window
+ * and is not before `today`; null when no window still has room.
+ */
+export function firstValidArrival(packageId: PackageId, today: Date = new Date()): string | null {
+  const todayIso = [
+    today.getFullYear(),
+    String(today.getMonth() + 1).padStart(2, '0'),
+    String(today.getDate()).padStart(2, '0'),
+  ].join('-');
+  const { nights } = getPackage(packageId);
+  for (const w of BOOKING_WINDOWS) {
+    const start = todayIso > w.from ? todayIso : w.from;
+    if (addDaysIso(start, nights) <= w.to) return start;
+  }
+  return null;
+}
+
 /** ISO date (YYYY-MM-DD) of the `dayIndex`-th day after arrival. */
 export function activityDate(arrival: string, dayIndex: number): string {
   const date = new Date(`${arrival}T12:00:00`);
@@ -544,4 +562,25 @@ export function makeItinerary(packageId: PackageId, picks: readonly ItineraryPic
   }
   rows.push([`Day ${days}`, 'Myoko to Joetsu-Myoko', 'Shuttle (proposed) from Lime Resort Myoko to Joetsu-Myoko Station; departure day kept activity-free.', 'Morning · illustrative']);
   return rows;
+}
+
+// ---------------------------------------------------------------------------
+// Demo seat counts (not real inventory)
+// ---------------------------------------------------------------------------
+
+/** Seats per departure in the demo calendar (small groups of 4-12). */
+export const SEATS_TOTAL = 12;
+
+/**
+ * Deterministic demo seat count for a departure: FNV-1a hash of package + date.
+ * 0..9 seats are "taken" (never full), so the result is always 3..SEATS_TOTAL.
+ * Demo data only; the UI labels it as such.
+ */
+export function seatsLeft(packageId: PackageId, isoDate: string): number {
+  let h = 0x811c9dc5;
+  for (const ch of `${packageId}|${isoDate}`) {
+    h ^= ch.charCodeAt(0);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return SEATS_TOTAL - (h % 10);
 }

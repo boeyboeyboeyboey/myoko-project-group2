@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router";
 import PageHero from "../components/PageHero";
+import PackagePhoto from "../components/PackagePhoto";
 import { PACKAGE_CONTENT } from "../lib/content";
 import { ACTIVITIES, PACKAGE_PRICES, getPackage } from "../lib/booking";
 import { sgd } from "../lib/format";
@@ -24,6 +25,7 @@ export default function Packages() {
               const rec = c.slug === "active";
               return (
                 <article key={c.slug} className="tier" data-rec={rec} data-reveal>
+                  <div className="tier__photo"><PackagePhoto photo={c.photo} sizes="(min-width: 960px) 30vw, 92vw" /></div>
                   <header className="tier__head">
                     <span className="numeral">0{i + 1}</span>
                     <span className="eyebrow">{rec ? <>Recommended <i className="dot" aria-hidden="true" /></> : c.jp}</span>
@@ -36,7 +38,7 @@ export default function Packages() {
                   <ul className="tier__list">
                     {pkg.themeActivities.map((id) => <li key={id}>{ACTIVITIES.find((a) => a.id === id)?.name ?? id}</li>)}
                   </ul>
-                  <Link to={`/packages/${c.slug}`} className={rec ? "pill" : "pill pill--ghost"}>Plan {c.name}</Link>
+                  <Link to={`/packages/${c.slug}`} className={rec ? "pill" : "pill pill--ghost"}>Explore {c.name}</Link>
                 </article>
               );
             })}

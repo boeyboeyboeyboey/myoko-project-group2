@@ -1,13 +1,17 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, Navigate, useParams } from "react-router";
 import PageHero from "../components/PageHero";
+import PackagePhoto from "../components/PackagePhoto";
 import ActivityPicker from "../components/booking/ActivityPicker";
-import { PACKAGE_CONTENT } from "../lib/content";
+import SeatsCalendar from "../components/booking/SeatsCalendar";
+import { useBookingFlip } from "../components/booking/useBookingFlip";
+import { PACKAGE_CONTENT, SHINANO_ALT } from "../lib/content";
 import {
   ACTIVITIES, BOOKING_WINDOWS, MAX_TRAVELLERS, MIN_TRAVELLERS, PACKAGE_PRICES, SLOTS, activityAvailable, activityDate, activityDayAllowed,
-  bookingDatesValid, calculateTotal, defaultPicks, findActivityClashes, getPackage, makeItinerary, type BookingSlot, type PackageId,
+  bookingDatesValid, calculateTotal, defaultPicks, findActivityClashes, firstValidArrival, getPackage, makeItinerary, type BookingSlot, type PackageId,
 } from "../lib/booking";
-import { useBooking } from "../lib/bookingState";
+import { resetBooking, updateBooking, useBooking } from "../lib/bookingState";
+import { contactErrors, makeReference } from "../lib/checkout";
 import { longDate, sgd, shortDate, todayIso } from "../lib/format";
 import { setBloom } from "../lib/bloom";
 import { useReveal } from "../lib/useReveal";
@@ -33,13 +37,28 @@ function Detail({ slug }: { slug: PackageId }) {
   useEffect(() => setBloom(1), []); // inner pages live in the green season
 
   const synced = booking.packageId === slug;
+  const seeded = useRef(false);
   useEffect(() => {
-    if (!synced) update({ packageId: slug, picks: defaultPicks(slug) });
-  }, [slug, synced, update]);
+    // Make the page bookable on load: keep a valid arrival, else use the first date that fits.
+    if (synced && seeded.current) return;
+    seeded.current = true;
+    const keep = bookingDatesValid(booking.arrival, slug);
+    const first = keep ? null : firstValidArrival(slug);
+    const arrival = keep ? booking.arrival : first ?? booking.arrival;
+    const patch: Parameters<typeof update>[0] = {};
+    if (!synced) {
+      patch.packageId = slug;
+      patch.picks = defaultPicks(slug, keep || first ? arrival : undefined);
+    } else if (first) patch.picks = defaultPicks(slug, first);
+    if (arrival !== booking.arrival) patch.arrival = arrival;
+    if (Object.keys(patch).length) update(patch);
+  }, [slug, synced, booking.arrival, update]);
 
-  const { arrival, travellers } = booking;
+  const { arrival, travellers, voucher, confirmation, contact } = booking;
   const picks = useMemo(() => (synced ? booking.picks : defaultPicks(slug)), [synced, booking.picks, slug]);
   const arrivalValid = bookingDatesValid(arrival, slug);
+  const capture = useBookingFlip(ref, [arrival, picks]);
+  const edit: typeof update = (patch) => { capture(); update(patch); };
   const departure = arrival ? activityDate(arrival, pkg.nights) : "";
 
   const clashes = useMemo(() => {
@@ -57,7 +76,7 @@ function Detail({ slug }: { slug: PackageId }) {
     return map;
   }, [picks, arrival, arrivalValid]);
 
-  const total = calculateTotal({ packageId: slug, activityIds: picks.map((p) => p.activityId), travellers });
+  const total = calculateTotal({ packageId: slug, activityIds: picks.map((p) => p.activityId), travellers, voucher });
   const itinerary = makeItinerary(slug, picks.map((p) => ({ activityId: p.activityId, dayIndex: p.dayIndex })));
   const clashCount = Object.keys(clashes).length;
   const staleCount = arrivalValid
@@ -75,7 +94,7 @@ function Detail({ slug }: { slug: PackageId }) {
     ? `Your stay (${nightsText(pkg.nights)} from arrival) must start today or later and fit inside ${WINDOWS_TEXT}.`
     : null;
   const setArrival = (next: string) => {
-    if (!bookingDatesValid(next, slug)) return update({ arrival: next });
+    if (!bookingDatesValid(next, slug)) return edit({ arrival: next });
     const theme = defaultPicks(slug, next);
     const current = new Set(picks.map((p) => p.activityId));
     const bad = picks.some((p) => !activityDayAllowed(p.dayIndex, slug) || !activityAvailable(p.activityId, activityDate(next, p.dayIndex)));
@@ -84,34 +103,40 @@ function Detail({ slug }: { slug: PackageId }) {
       const sl = SLOTS.find((x) => x.id === p.slot)!;
       return { id: p.activityId, date: activityDate(next, p.dayIndex), start: sl.start, end: sl.start + a.duration };
     });
-    if (!bad && findActivityClashes(slots).length === 0) return update({ arrival: next });
+    if (!bad && findActivityClashes(slots).length === 0) return edit({ arrival: next });
     // Re-place the package's theme activities for this arrival; keep any extras the traveller added.
     const replaced = theme.filter((p) => current.has(p.activityId));
     const kept = picks.filter((p) => !theme.some((t) => t.activityId === p.activityId) && !pkg.themeActivities.includes(p.activityId));
-    update({ arrival: next, picks: [...replaced, ...kept] });
+    edit({ arrival: next, picks: [...replaced, ...kept] });
   };
   const setTravellers = (n: number) => update({ travellers: Math.min(MAX_TRAVELLERS, Math.max(MIN_TRAVELLERS, n)) });
-  const inWindow = (w: (typeof BOOKING_WINDOWS)[number]) => arrivalValid && arrival >= w.from && departure <= w.to;
+  const [name, setName] = useState(contact.name);
+  const [email, setEmail] = useState(contact.email);
+  const [touched, setTouched] = useState({ name: false, email: false });
+  const errs = contactErrors(name, email);
+  const confirm = () => {
+    setTouched({ name: true, email: true });
+    if (blocker || errs.name || errs.email) return;
+    updateBooking({ confirmation: makeReference(), contact: { name: name.trim(), email: email.trim() } });
+  };
 
   return (
     <div className="page pd" ref={ref}>
       <PageHero num="02" label={`Package · ${content.name}`} jp={content.jp} title={<>{content.name}</>} />
 
+      <div className="container pd__banner">
+        <PackagePhoto photo={content.photo} sizes="(min-width: 960px) 60vw, 92vw" eager />
+        <p className="pd__credit">{content.photo.credit}</p>
+      </div>
+
       <div className="container pd__layout">
         <div className="pd__main">
-          <section className="section section--tight" data-reveal>
+          <section className="section section--tight pd__dates" data-reveal>
             <h2 className="eyebrow">Dates</h2>
             <div className="form">
-              <div className="field">
-                <span className="eyebrow" id="win-label">Travel window</span>
-                <div className="chips" role="group" aria-labelledby="win-label">
-                  {BOOKING_WINDOWS.map((w) => (
-                    <button key={w.id} type="button" className="chip chip--add" aria-pressed={inWindow(w)}
-                      onClick={() => setArrival(w.from)}>
-                      {windowLabel(w.from, w.to)}
-                    </button>
-                  ))}
-                </div>
+              <div className="field field--cal">
+                <span className="eyebrow">Choose your arrival</span>
+                <SeatsCalendar packageId={slug} arrival={arrival} arrivalValid={arrivalValid} onPick={setArrival} />
               </div>
               <div className="field">
                 <label className="eyebrow" htmlFor="arrival">Arrival date</label>
@@ -119,7 +144,7 @@ function Detail({ slug }: { slug: PackageId }) {
                   aria-invalid={!!dateError} aria-describedby="arrival-msg"
                   onChange={(e) => setArrival(e.target.value)} />
                 <p id="arrival-msg" className="note" data-bad={!!dateError} role={dateError ? "alert" : undefined}>
-                  {dateError ?? (arrivalValid ? `Departs ${longDate(departure)}.` : "Pick a window above or enter a date.")}
+                  {dateError ?? (arrivalValid ? `Departs ${longDate(departure)}.` : "Pick a day above or enter a date.")}
                 </p>
               </div>
               <div className="field">
@@ -134,29 +159,41 @@ function Detail({ slug }: { slug: PackageId }) {
             </div>
           </section>
 
-          <section className="section section--tight" data-reveal>
-            <h2 className="eyebrow">Included</h2>
-            <ul className="tier__list">{content.inclusions.map((x) => <li key={x}>{x}</li>)}</ul>
-            <p className="note">{content.stay.property}: {content.stay.status}.</p>
-          </section>
-
-          <section className="section section--tight">
+          <section className="section section--tight pd__rest">
             <div data-reveal>
               <h2 className="sec-title">Your <em>itinerary</em></h2>
               <p className="note">Removed activities aren't refunded.</p>
             </div>
             <ActivityPicker packageId={slug} arrival={arrival} arrivalValid={arrivalValid}
-              picks={picks} clashes={clashes} onChange={(next) => update({ picks: next })} />
+              picks={picks} clashes={clashes} onChange={(next) => edit({ picks: next })} />
           </section>
 
-          <section className="section section--tight">
+          <section className="section section--tight pd__rest">
             <ol className="itin" data-reveal aria-label="Itinerary">
-              {itinerary.map(([day, title, detail, timing], i) => (
-                <li key={day}>
-                  <span className="itin__day">{day}{arrivalValid && <small>{shortDate(activityDate(arrival, i))}</small>}</span>
-                  <div><h3>{title}</h3><p>{detail}</p><small>{timing}</small></div>
-                </li>
-              ))}
+              {itinerary.map(([day, title, detail, timing], i) => {
+                const dayPicks = picks
+                  .filter((p) => p.dayIndex === i && activityDayAllowed(p.dayIndex, slug))
+                  .sort((x, y) => SLOTS.findIndex((q) => q.id === x.slot) - SLOTS.findIndex((q) => q.id === y.slot));
+                return (
+                  <li key={day} data-flip-id={`day-${i}`}>
+                    <span className="itin__day">{day}{arrivalValid && <small>{shortDate(activityDate(arrival, i))}</small>}</span>
+                    <div>
+                      <h3>{title}</h3>
+                      {dayPicks.length === 0 ? <p>{detail}</p> : (
+                        <ul className="itin__acts">
+                          {dayPicks.map((p) => (
+                            <li key={p.activityId} className="itin__act" data-flip-id={`it-${p.activityId}`} data-flip-leaf
+                              data-problem={!!clashes[p.activityId]}>
+                              {ACTIVITIES.find((x) => x.id === p.activityId)?.name}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <small>{timing}</small>
+                    </div>
+                  </li>
+                );
+              })}
             </ol>
           </section>
         </div>
@@ -173,10 +210,47 @@ function Detail({ slug }: { slug: PackageId }) {
             <p className="bsum__pp"><strong>{sgd(total.perPerson)}</strong> <small>per person</small></p>
             <p className="bsum__party">Total <strong>{total.partyTotal === null ? "n/a" : sgd(total.partyTotal)}</strong></p>
           </div>
-          <div className="bsum__cta">
-            {blocker ? <button type="button" className="pill pill--off" disabled>Continue</button> : <Link to="/book" className="pill">Continue</Link>}
-            {blocker && <p className="note" role="status">{blocker}</p>}
-          </div>
+          {voucher && total.payableTotal !== null && (
+            <p className="bsum__party">Winter voucher {voucher.code} <strong>−{sgd(total.discountAmount)}</strong> · Payable <strong>{sgd(total.payableTotal)}</strong></p>
+          )}
+          {confirmation ? (
+            <div className="bsum__done" role="status">
+              <span className="eyebrow">Reference</span>
+              <strong className="conf__ref">{confirmation}</strong>
+              <p className="note">
+                {content.name}, {shortDate(arrival)} – {shortDate(departure)}, {travellers} {travellers === 1 ? "traveller" : "travellers"},{" "}
+                {total.payableTotal === null ? "n/a" : sgd(total.payableTotal)}. Demo only: nothing has been booked or charged.
+              </p>
+              <button type="button" className="pill pill--ghost" onClick={() => resetBooking()}>Start over</button>
+            </div>
+          ) : (
+            <form className="form bsum__form" noValidate onSubmit={(e) => { e.preventDefault(); confirm(); }}>
+              <div className="field">
+                <label className="eyebrow" htmlFor="c-name">Name</label>
+                <input id="c-name" className="input" autoComplete="name" required value={name}
+                  aria-invalid={touched.name && !!errs.name} aria-describedby={touched.name && errs.name ? "c-name-err" : undefined}
+                  onChange={(e) => setName(e.target.value)} onBlur={() => setTouched((t) => ({ ...t, name: true }))} />
+                {touched.name && errs.name && <p id="c-name-err" className="note" data-bad="true" role="alert">{errs.name}</p>}
+              </div>
+              <div className="field">
+                <label className="eyebrow" htmlFor="c-email">Email</label>
+                <input id="c-email" type="email" className="input" autoComplete="email" required value={email}
+                  aria-invalid={touched.email && !!errs.email} aria-describedby={touched.email && errs.email ? "c-email-err" : undefined}
+                  onChange={(e) => setEmail(e.target.value)} onBlur={() => setTouched((t) => ({ ...t, email: true }))} />
+                {touched.email && errs.email && <p id="c-email-err" className="note" data-bad="true" role="alert">{errs.email}</p>}
+              </div>
+              <div className="bsum__cta">
+                <button type="submit" className={blocker ? "pill pill--off" : "pill"} disabled={!!blocker}>Confirm demo booking</button>
+                {blocker && <p className="note" role="status">{blocker}</p>}
+                {!voucher && <p className="note">Winter guest? <Link to="/return" className="u">Apply your voucher</Link></p>}
+              </div>
+            </form>
+          )}
+          <ul className="bsum__incl" aria-label="Included">
+            {content.inclusions.map((x) => <li key={x}>{x}</li>)}
+          </ul>
+          <p className="note">{SHINANO_ALT}</p>
+          <p className="note">{content.stay.property}: {content.stay.status}.</p>
           <p className="fine bsum__fine">Illustrative prices. Shuttle and partners are proposed. <Link to="/pricing-notes" className="u">How we priced this</Link></p>
         </aside>
       </div>

@@ -120,25 +120,11 @@ export const COST_LINES: readonly CostLine[] = [
 /** Information only: how guests reach the resorts today. Not used in any price formula. */
 export const TODAY_ALTERNATIVES: readonly TodayAlternative[] = [
   {
-    item: 'Nagaden bus, Iiyama → Madarao',
-    price: '¥700 one way, ~30 min, 5 runs/day in the 2026 green season; some runs not on weekends',
-    source: { title: 'Madarao green-season access', url: 'https://www.madarao.jp/green/access', date: null },
-    confidence: 'low',
-    note: 'October operation unconfirmed. Also: https://www.snowmonkeyresorts.com/access/iiyama-station/',
-  },
-  {
-    item: 'Taxi, Iiyama → Madarao',
-    price: '¥2,800–3,300, ~20 min',
-    source: { title: 'Snow Monkey Resorts, Iiyama station access', url: 'https://www.snowmonkeyresorts.com/access/iiyama-station/', date: null },
-    confidence: 'low',
-    note: '',
-  },
-  {
     item: 'Shinkansen, Tokyo → Nagano',
     price: '¥8,340–8,450 reserved (sources conflict)',
     source: { title: 'jr-shinkansen.net, Tokyo to Nagano', url: 'https://jr-shinkansen.net/articles/tokyo-nagano/', date: null },
     confidence: 'low',
-    note: '~60 trains/day vs 11 to Iiyama.',
+    note: '~60 trains/day.',
   },
   {
     item: 'Shinano Railway, Nagano → Myoko-Kogen',
