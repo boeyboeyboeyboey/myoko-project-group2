@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { Link } from "react-router";
 import PageHero from "../components/PageHero";
 import RouteDiagram from "../components/route/RouteDiagram";
+import { asset } from "../lib/asset";
 import { useReveal } from "../lib/useReveal";
 
 interface Proof { title: string; text: string; img?: { name: string; w: number; h: number; alt: string }; }
@@ -12,12 +13,12 @@ const PROOFS: Proof[] = [
 ];
 
 function Photo({ name, w, h, alt }: { name: string; w: number; h: number; alt: string }) {
-  const set = (ext: string) => [480, 800, 1200].map((x) => `/media/home/${name}-${x}.${ext} ${x}w`).join(", ");
+  const set = (ext: string) => [480, 800, 1200].map((x) => `${asset(`media/home/${name}-${x}.${ext}`)} ${x}w`).join(", ");
   const sizes = "(min-width: 960px) 30vw, 92vw";
   return (
     <picture>
       <source type="image/webp" srcSet={set("webp")} sizes={sizes} />
-      <img src={`/media/home/${name}-800.jpg`} srcSet={set("jpg")} sizes={sizes} width={w} height={h} alt={alt} loading="lazy" decoding="async" />
+      <img src={asset(`media/home/${name}-800.jpg`)} srcSet={set("jpg")} sizes={sizes} width={w} height={h} alt={alt} loading="lazy" decoding="async" />
     </picture>
   );
 }
@@ -28,7 +29,7 @@ export default function Why() {
 
   return (
     <div className="page">
-      <PageHero num="04" label="Why Myoko" jp="夏" title={<>Why come <em>back</em>.</>} />
+      <PageHero label="Why Myoko" jp="夏" title={<>Why come <em>back</em>.</>} />
       <section className="route-sec" aria-label="Getting there">
         <div className="container"><RouteDiagram /></div>
       </section>

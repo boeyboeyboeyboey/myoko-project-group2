@@ -38,6 +38,17 @@ const JOBS = [
       { name: "best", src: "media-raw/commons/green-4.jpg" },
     ],
   },
+  {
+    // Itinerary day-card photos (see media-raw/commons/CREDITS-commons.md)
+    group: "itinerary",
+    outDir: "public/media/itinerary",
+    widths: [480, 800, 1200], // PackagePhoto always requests 480/800/1200
+    quality: 76,
+    items: [
+      { name: "station", src: "media-raw/commons/joetsu-myoko-e7.jpg" },
+      { name: "station-out", src: "media-raw/commons/joetsu-myoko-station-2.jpg" },
+    ],
+  },
 ];
 
 const only = process.argv.slice(2);

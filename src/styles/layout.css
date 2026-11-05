@@ -140,3 +140,13 @@
   background: var(--ink); color: var(--snow); font-size: 11px; letter-spacing: 0.08em;
 }
 .dev-bloom input { width: 140px; accent-color: var(--koke); }
+
+/* Voucher page: compact header so the code field sits near the top */
+.page--voucher .page-hero { padding-block: var(--space-6); }
+.page--voucher .page-hero__label { margin-bottom: var(--space-4); }
+.page--voucher .page-hero h1 { font-size: var(--step-3); max-width: none; }
+.page--voucher .page-hero__lede { margin-top: var(--space-4); }
+.page--voucher .page-hero + .section { padding-top: var(--space-6); }
+.page--voucher .rp__stage { justify-self: start; }
+.page--voucher .rp__panel .sec-title { font-size: var(--step-2); line-height: 1.1; }
+.page--voucher .rp__panel .form { gap: var(--space-3); }

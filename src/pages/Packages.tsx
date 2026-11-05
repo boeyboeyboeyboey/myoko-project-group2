@@ -15,7 +15,7 @@ export default function Packages() {
 
   return (
     <div className="page" ref={ref}>
-      <PageHero num="01" label="Packages" jp="旅" title={<>Three ways to <em>return</em>.</>} />
+      <PageHero label="Packages" jp="旅" title={<>Three ways to <em>return</em>.</>} />
 
       <section className="section">
         <div className="container">

@@ -87,20 +87,10 @@ export default function Return() {
   }
 
   return (
-    <div className="page" ref={root}>
-      <PageHero num="03" label="Winter voucher" jp="再会"
-        title={<>You've seen Myoko in white. Now see it in <em>green</em>.</>}
+    <div className="page page--voucher" ref={root}>
+      <PageHero label="Winter voucher" jp="再会"
+        title={<>Your winter <em>voucher</em>.</>}
         lede="Handed out at winter check-in. Proposed: PCG would issue it to its own ski guests." />
-
-      <section className="section section--tight">
-        <div className="container">
-          <ol className="steps" data-reveal>
-            {STEPS.map(([h, p], i) => (
-              <li key={h}><span className="numeral">0{i + 1}</span><strong>{h}</strong><span className="note">{p}</span></li>
-            ))}
-          </ol>
-        </div>
-      </section>
 
       <section className="section">
         <div className="container rp">
@@ -130,7 +120,9 @@ export default function Return() {
                   <label htmlFor="pass-code" className="eyebrow">Voucher code</label>
                   <input id="pass-code" ref={field} className="input" value={value} autoComplete="off" spellCheck={false}
                     autoCapitalize="characters" aria-invalid={error ? "true" : "false"} aria-describedby="pass-msg"
-                    onChange={(e) => setValue(e.target.value)} placeholder="e.g. MADARAO-2026" />
+                    onChange={(e) => setValue(e.target.value)} placeholder="e.g. MADARAO-2026"
+                    // Demo convenience: an empty field fills with the sample code from the voucher card.
+                    onFocus={() => { if (!value) setValue("MADARAO-4827"); }} />
                   <p id="pass-msg" className="note" data-bad="true" aria-live="polite">{error}</p>
                   <button type="submit" className="pill">Reveal my voucher</button>
                 </div>
@@ -153,6 +145,16 @@ export default function Return() {
           <p className="fine">Prototype: no real codes exist.</p>
         </div>
       </section>
+      <section className="section section--tight">
+        <div className="container">
+          <ol className="steps" data-reveal>
+            {STEPS.map(([h, p], i) => (
+              <li key={h}><span className="numeral">0{i + 1}</span><strong>{h}</strong><span className="note">{p}</span></li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
     </div>
   );
 }

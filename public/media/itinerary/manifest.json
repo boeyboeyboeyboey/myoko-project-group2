@@ -1,0 +1,48 @@
+{
+  "station": {
+    "width": 1920,
+    "height": 1440,
+    "aspect": 1.3333333333333333,
+    "sizes": [
+      {
+        "w": 480,
+        "webpKB": 27,
+        "jpgKB": 31
+      },
+      {
+        "w": 800,
+        "webpKB": 69,
+        "jpgKB": 74
+      },
+      {
+        "w": 1200,
+        "webpKB": 144,
+        "jpgKB": 155
+      }
+    ],
+    "blurDataURI": "data:image/webp;base64,UklGRpAAAABXRUJQVlA4IIQAAADwBACdASoYABIAPtFco0yoJSMiMBgIAQAaCWYAeP4CNDc1u/wgg6RS8tZo5s/YjUwA/sCI1PqasRSV32LAP5Pn5Sf+nszaA4lC2Kn52rQ9fEG1SKvX7NiEWiY8Rpzjp613BM096Os1PAoP3fGgNplLEEUoaRSg4yT7VmOc1gFGAfgAAAA="
+  },
+  "station-out": {
+    "width": 1600,
+    "height": 1067,
+    "aspect": 1.499531396438613,
+    "sizes": [
+      {
+        "w": 480,
+        "webpKB": 23,
+        "jpgKB": 22
+      },
+      {
+        "w": 800,
+        "webpKB": 70,
+        "jpgKB": 65
+      },
+      {
+        "w": 1200,
+        "webpKB": 160,
+        "jpgKB": 149
+      }
+    ],
+    "blurDataURI": "data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAAAwAwCdASoYABAALplotFoiqCgoCACYSgCsAEOs/xwJgP0AAP74w5zH0vYsa16ZO1OuHMOSYR6PpvU2l9H40mYZWl8P9jYqktRrACi6qwZRX1AA"
+  }
+}

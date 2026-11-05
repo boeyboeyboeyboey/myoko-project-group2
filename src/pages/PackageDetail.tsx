@@ -5,14 +5,14 @@ import PackagePhoto from "../components/PackagePhoto";
 import ActivityPicker from "../components/booking/ActivityPicker";
 import SeatsCalendar from "../components/booking/SeatsCalendar";
 import { useBookingFlip } from "../components/booking/useBookingFlip";
-import { PACKAGE_CONTENT, SHINANO_ALT } from "../lib/content";
+import { PACKAGE_CONTENT, SHINANO_ALT, dayPhotos } from "../lib/content";
 import {
   ACTIVITIES, BOOKING_WINDOWS, MAX_TRAVELLERS, MIN_TRAVELLERS, PACKAGE_PRICES, SLOTS, activityAvailable, activityDate, activityDayAllowed,
   bookingDatesValid, calculateTotal, defaultPicks, findActivityClashes, firstValidArrival, getPackage, makeItinerary, type BookingSlot, type PackageId,
 } from "../lib/booking";
 import { resetBooking, updateBooking, useBooking } from "../lib/bookingState";
 import { contactErrors, makeReference } from "../lib/checkout";
-import { longDate, sgd, shortDate, todayIso } from "../lib/format";
+import { hhmm, longDate, sgd, shortDate, todayIso } from "../lib/format";
 import { setBloom } from "../lib/bloom";
 import { useReveal } from "../lib/useReveal";
 
@@ -77,7 +77,12 @@ function Detail({ slug }: { slug: PackageId }) {
   }, [picks, arrival, arrivalValid]);
 
   const total = calculateTotal({ packageId: slug, activityIds: picks.map((p) => p.activityId), travellers, voucher });
+  const discounted = voucher != null && total.payableTotal !== null && total.discountAmount > 0;
   const itinerary = makeItinerary(slug, picks.map((p) => ({ activityId: p.activityId, dayIndex: p.dayIndex })));
+  const picksByDay = itinerary.map((_, i) => picks
+    .filter((p) => p.dayIndex === i && activityDayAllowed(p.dayIndex, slug))
+    .sort((x, y) => SLOTS.findIndex((q) => q.id === x.slot) - SLOTS.findIndex((q) => q.id === y.slot)));
+  const photosByDay = dayPhotos(slug, picksByDay.map((d) => d.map((p) => p.activityId)));
   const clashCount = Object.keys(clashes).length;
   const staleCount = arrivalValid
     ? picks.filter((p) => !activityDayAllowed(p.dayIndex, slug) || !activityAvailable(p.activityId, activityDate(arrival, p.dayIndex))).length
@@ -122,7 +127,7 @@ function Detail({ slug }: { slug: PackageId }) {
 
   return (
     <div className="page pd" ref={ref}>
-      <PageHero num="02" label={`Package · ${content.name}`} jp={content.jp} title={<>{content.name}</>} />
+      <PageHero label={`Package · ${content.name}`} jp={content.jp} title={<>{content.name}</>} />
 
       <div className="container pd__banner">
         <PackagePhoto photo={content.photo} sizes="(min-width: 960px) 60vw, 92vw" eager />
@@ -159,43 +164,6 @@ function Detail({ slug }: { slug: PackageId }) {
             </div>
           </section>
 
-          <section className="section section--tight pd__rest">
-            <div data-reveal>
-              <h2 className="sec-title">Your <em>itinerary</em></h2>
-              <p className="note">Removed activities aren't refunded.</p>
-            </div>
-            <ActivityPicker packageId={slug} arrival={arrival} arrivalValid={arrivalValid}
-              picks={picks} clashes={clashes} onChange={(next) => edit({ picks: next })} />
-          </section>
-
-          <section className="section section--tight pd__rest">
-            <ol className="itin" data-reveal aria-label="Itinerary">
-              {itinerary.map(([day, title, detail, timing], i) => {
-                const dayPicks = picks
-                  .filter((p) => p.dayIndex === i && activityDayAllowed(p.dayIndex, slug))
-                  .sort((x, y) => SLOTS.findIndex((q) => q.id === x.slot) - SLOTS.findIndex((q) => q.id === y.slot));
-                return (
-                  <li key={day} data-flip-id={`day-${i}`}>
-                    <span className="itin__day">{day}{arrivalValid && <small>{shortDate(activityDate(arrival, i))}</small>}</span>
-                    <div>
-                      <h3>{title}</h3>
-                      {dayPicks.length === 0 ? <p>{detail}</p> : (
-                        <ul className="itin__acts">
-                          {dayPicks.map((p) => (
-                            <li key={p.activityId} className="itin__act" data-flip-id={`it-${p.activityId}`} data-flip-leaf
-                              data-problem={!!clashes[p.activityId]}>
-                              {ACTIVITIES.find((x) => x.id === p.activityId)?.name}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                      <small>{timing}</small>
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
-          </section>
         </div>
 
         <aside className="bsum" aria-label="Booking summary">
@@ -207,11 +175,17 @@ function Detail({ slug }: { slug: PackageId }) {
             {total.extraActivityTotal > 0 && <div><dt>Extra activities</dt><dd>+{sgd(total.extraActivityTotal)} pp</dd></div>}
           </dl>
           <div className="bsum__price">
-            <p className="bsum__pp"><strong>{sgd(total.perPerson)}</strong> <small>per person</small></p>
-            <p className="bsum__party">Total <strong>{total.partyTotal === null ? "n/a" : sgd(total.partyTotal)}</strong></p>
+            <p className="bsum__pp">
+              {discounted && <s className="bsum__was">{sgd(total.perPerson)}</s>}{" "}
+              <strong>{sgd(discounted ? Math.round(total.perPerson * (1 - voucher.discount) * 100) / 100 : total.perPerson)}</strong> <small>per person</small>
+            </p>
+            <p className="bsum__party">
+              Total {discounted && <s className="bsum__was">{sgd(total.partyTotal!)}</s>}{" "}
+              <strong>{total.payableTotal === null ? "n/a" : sgd(total.payableTotal)}</strong>
+            </p>
           </div>
-          {voucher && total.payableTotal !== null && (
-            <p className="bsum__party">Winter voucher {voucher.code} <strong>−{sgd(total.discountAmount)}</strong> · Payable <strong>{sgd(total.payableTotal)}</strong></p>
+          {discounted && (
+            <p className="bsum__party">Winter voucher {voucher.code}: −{sgd(total.discountAmount)}</p>
           )}
           {confirmation ? (
             <div className="bsum__done" role="status">
@@ -253,6 +227,54 @@ function Detail({ slug }: { slug: PackageId }) {
           <p className="note">{content.stay.property}: {content.stay.status}.</p>
           <p className="fine bsum__fine">Illustrative prices. Shuttle and partners are proposed. <Link to="/pricing-notes" className="u">How we priced this</Link></p>
         </aside>
+      </div>
+
+      <div className="container pd__after">
+        <section className="section section--tight pd__rest">
+          <h2 className="sec-title pd__ithead" data-reveal>Your <em>itinerary</em></h2>
+          <ol className="dcards" data-reveal aria-label="Itinerary">
+            {itinerary.map(([day, title, detail, timing], i) => {
+              const dayPicks = picksByDay[i];
+              const photo = photosByDay[i];
+              return (
+                <li key={day} className="dcard" data-flip-id={`day-${i}`}>
+                  <figure className="dcard__photo">
+                    <PackagePhoto photo={photo} sizes="(min-width: 1100px) 22vw, (min-width: 600px) 45vw, 92vw" />
+                    <figcaption>{photo.credit}</figcaption>
+                  </figure>
+                  <div className="dcard__body">
+                    <span className="dcard__day">{day}{arrivalValid && <small>{shortDate(activityDate(arrival, i))}</small>}</span>
+                    <h3>{title}</h3>
+                    {dayPicks.length === 0 ? <p>{detail}</p> : (
+                      <ul className="dcard__acts">
+                        {dayPicks.map((p) => {
+                          const slot = SLOTS.find((q) => q.id === p.slot);
+                          return (
+                            <li key={p.activityId} className="dcard__act" data-flip-id={`it-${p.activityId}`} data-flip-leaf
+                              data-problem={!!clashes[p.activityId]}>
+                              {ACTIVITIES.find((x) => x.id === p.activityId)?.name}
+                              {slot && <small>{hhmm(slot.start)}–{hhmm(slot.end)}</small>}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                    <small className="dcard__timing">{timing}</small>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </section>
+
+        <section className="section section--tight pd__rest">
+          <div data-reveal>
+            <h2 className="sec-title">Change your <em>activities</em></h2>
+            <p className="note">Removed activities aren't refunded.</p>
+          </div>
+          <ActivityPicker packageId={slug} arrival={arrival} arrivalValid={arrivalValid}
+            picks={picks} clashes={clashes} onChange={(next) => edit({ picks: next })} />
+        </section>
       </div>
 
       <div className="container back"><Link to="/packages" className="u">All packages</Link></div>

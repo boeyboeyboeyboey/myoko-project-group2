@@ -72,14 +72,14 @@
   --dur-slow: 900ms;
 
   /* Layout */
-  --max-w: 1440px;
+  --max-w: 1280px;
   --gutter: 16px;
   --nav-h: 68px;
 }
 
 @media (min-width: 768px) {
   :root {
-    --gutter: 32px;
+    --gutter: clamp(32px, 5vw, 80px);
     --nav-h: 80px;
   }
 }

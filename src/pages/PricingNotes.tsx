@@ -34,7 +34,7 @@ export default function PricingNotes() {
 
   return (
     <div className="page" ref={ref}>
-      <PageHero num="05" label="Pricing notes" jp="価格" title={<>How the prices are <em>built</em>.</>}
+      <PageHero label="Pricing notes" jp="価格" title={<>How the prices are <em>built</em>.</>}
         lede="Working notes for reviewers. Every figure is illustrative and derived from the data below." />
 
       <section className="section">

@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router";
 import { gsap } from "gsap";
+import { asset } from "../../lib/asset";
 import { setBloom } from "../../lib/bloom";
 import { createInkBleed, type InkBleed } from "../../lib/inkBleed";
 import LiveWeather from "./LiveWeather";
@@ -12,7 +13,7 @@ const WINTER_LINE = "You've seen Myoko in white.";
 const HERO_SUB = "Take the Shinkansen to Joetsu-Myoko. We arrange the rest (proposed).";
 const REVEAL_SECONDS = 2.5; // autoplay length of the white-to-green swap
 const REVEAL_DELAY = 0.3;
-const GREEN_LINE = "Now see it in green.";
+const GREEN_LINE = "Now you'll see it in green.";
 // Same viewpoint (Imori Pond, ~17 m apart), pre-aligned crops — keep both focal points identical so the frames stay registered.
 const FOCAL = { winter: [0.7, 0.4] as [number, number], green: [0.7, 0.4] as [number, number] };
 
@@ -30,7 +31,7 @@ function pickWidth() {
   const px = window.innerWidth * Math.min(window.devicePixelRatio || 1, 2);
   return px <= 1280 ? 1280 : px <= 1920 ? 1920 : 2560;
 }
-const src = (name: "winter" | "green", w: number) => `/media/hero/${name}-${w}.webp`;
+const src = (name: "winter" | "green", w: number) => asset(`media/hero/${name}-${w}.webp`);
 
 function Chars({ text }: { text: string }) {
   return (

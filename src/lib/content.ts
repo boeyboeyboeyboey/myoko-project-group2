@@ -32,6 +32,45 @@ const PHOTOS: Record<PackageId, PackagePhotoInfo> = {
   best: { dir: "packages", name: "best", w: 3840, h: 2560, alt: "Imori-ike pond with Mt Myoko", credit: "Photo: TANAKA Juuyoh, CC BY 2.0" },
 };
 
+/** Day-card photos by activity id. Add a real photo for an activity as one entry here. */
+export const ACTIVITY_PHOTOS: Partial<Record<string, PackagePhotoInfo>> = {
+  kayak: PHOTOS.active,
+  sup: PHOTOS.slow, // Lake Nojiri, where the paddle runs
+  cruise: PHOTOS.slow,
+  forest: PHOTOS.best,
+  trek: PHOTOS.best,
+};
+
+const STATION_PHOTO: PackagePhotoInfo = {
+  dir: "itinerary", name: "station", w: 1920, h: 1440,
+  alt: "Hokuriku Shinkansen at Joetsu-Myoko Station", credit: "Photo: Rebirth10, CC BY-SA 4.0",
+};
+const STATION_OUT_PHOTO: PackagePhotoInfo = {
+  dir: "itinerary", name: "station-out", w: 1600, h: 1067,
+  alt: "Joetsu-Myoko Station from the forecourt", credit: "Photo: くろふね, CC BY 4.0",
+};
+const NAENA_PHOTO: PackagePhotoInfo = {
+  dir: "home", name: "naena-falls", w: 1200, h: 1600, alt: "Naena Falls in the forest", credit: "Photo: Myoko in Colour team",
+};
+const PHOTO_POOL = [PHOTOS.active, PHOTOS.slow, PHOTOS.best, NAENA_PHOTO, STATION_PHOTO];
+
+/**
+ * One photo per itinerary day, never repeating while unused photos remain.
+ * Arrival shows the Shinkansen platform, departure the station building; activity days use their first picked activity's photo.
+ * `days[i]` holds that day's activity ids in slot order.
+ */
+export function dayPhotos(slug: PackageId, days: string[][]): PackagePhotoInfo[] {
+  const used = new Set<string>();
+  return days.map((ids, i) => {
+    const wanted = ids.length > 0
+      ? [...ids.map((id) => ACTIVITY_PHOTOS[id]).filter((x): x is PackagePhotoInfo => !!x), PHOTOS[slug]]
+      : [i === 0 ? STATION_PHOTO : STATION_OUT_PHOTO];
+    const pick = [...wanted, ...PHOTO_POOL].find((ph) => !used.has(ph.name)) ?? wanted[0];
+    used.add(pick.name);
+    return pick;
+  });
+}
+
 export interface PackageContent {
   slug: PackageId;
   name: string;
